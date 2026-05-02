@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Complete - Soyabean Leaf Disease Detection{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="main-container fade-in">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">Analysis Complete</h2>
+                <p class="text-muted mb-0">Professional AI-powered disease detection results</p>
+            </div>
+            <a href="{{ url_for('index') }}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>New Analysis
+            </a>
+        </div>
+
+        <div class="row">
+            <!-- Detection Results -->
+            <div class="col-lg-8 mb-4">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-search-plus text-success me-2"></i>Detection Results
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center mb-4">
+                            <div class="col-md-8">
+                                <h3 class="text-success mb-2">{{ results.detection.disease }}</h3>
+                                <p class="text-muted mb-3">{{ results.detection.disease }} Detection</p>
+
+                                <h6 class="mb-2">Severity Assessment</h6>
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="severity-badge severity-{{ results.detection.severity.lower() }} me-3">
+                                        {{ results.detection.severity }}
+                                    </span>
+                                    <small class="text-muted">{{ results.detection.confidence }}% confidence</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Confidence Level</small>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" style="width: {{ results.detection.confidence }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="border-end">
+                                    <h5 class="mb-1">{{ results.detection.affected_regions }}</h5>
+                                    <small class="text-muted">Affected Regions</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border-end">
+                                    <h5 class="mb-1">{{ results.detection.processing_time }}</h5>
+                                    <small class="text-muted">Processing Time</small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-3">
+                                <h5 class="mb-1">Active</h5>
+                                <small class="text-muted">Status</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Performance -->
+            <div class="col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-bar text-success me-2"></i>AI Performance
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">YOLO Detection</small>
+                                <small class="text-muted">{{ results.performance.yolo_detection }}%</small>
+                            </div>
+                            <div class="progress-custom">
+                                <div class="progress-bar-custom" style="width: {{ results.performance.yolo_detection }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">CNN Classification</small>
+                                <small class="text-muted">{{ results.performance.cnn_classification }}%</small>
+                            </div>
+                            <div class="progress-custom">
+                                <div class="progress-bar-custom" style="width: {{ results.performance.cnn_classification }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Comparison -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-image text-success me-2"></i>Original Image
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="image-comparison">
+                            <img src="{{ url_for('static', filename='uploads/' + filename) }}"
+                                 alt="Original leaf image" class="img-fluid w-100">
+                        </div>
+                        <div class="p-3">
+                            <small class="text-muted">Source: original leaf scan from Crop</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-crosshairs text-success me-2"></i>YOLOv8 Detection Output
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="image-comparison position-relative">
+                            <img src="{{ url_for('static', filename='uploads/' + filename) }}"
+                                 alt="Detection output" class="img-fluid w-100">
+                            <div style="position: absolute; top: 25%; left: 15%; width: 60%; height: 50%;
+                                        border: 3px solid #ef4444; background: rgba(239, 68, 68, 0.1);"></div>
+                            <div style="position: absolute; top: 20%; left: 10%;
+                                        background: #ef4444; color: white; padding: 2px 8px;
+                                        font-size: 0.8rem; border-radius: 4px;">
+                                {{ results.detection.disease }} {{ results.detection.confidence }}%
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <small class="text-muted">AI Detection Output - {{ results.detection.confidence }}% confidence</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Details -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle text-success me-2"></i>Analysis Details
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-2">
+                                <div class="mb-2"><i class="fas fa-calendar text-muted"></i></div>
+                                <h6 class="mb-1">{{ results.analysis_details.date }}</h6>
+                                <small class="text-muted">Analysis Date</small>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-2"><i class="fas fa-clock text-muted"></i></div>
+                                <h6 class="mb-1">{{ results.analysis_details.time }}</h6>
+                                <small class="text-muted">Time</small>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-2"><i class="fas fa-file text-muted"></i></div>
+                                <h6 class="mb-1">{{ results.analysis_details.size }}</h6>
+                                <small class="text-muted">File Size</small>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-2"><i class="fas fa-expand text-muted"></i></div>
+                                <h6 class="mb-1">{{ results.analysis_details.resolution }}</h6>
+                                <small class="text-muted">Resolution</small>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-2"><i class="fas fa-brain text-muted"></i></div>
+                                <h6 class="mb-1">{{ results.analysis_details.model }}</h6>
+                                <small class="text-muted">AI Model Source</small>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-2"><i class="fas fa-check-circle text-success"></i></div>
+                                <h6 class="mb-1">{{ results.analysis_details.status }}</h6>
+                                <small class="text-muted">Status</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Treatment Recommendations -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-warning bg-opacity-10">
+                        <h6 class="mb-0">
+                            <i class="fas fa-prescription-bottle text-warning me-2"></i>Treatment Recommendations
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% for recommendation in results.recommendations %}
+                        <div class="recommendation-item">
+                            <i class="fas fa-check-circle text-warning me-2"></i>
+                            {{ recommendation }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden data for JS -->
+        <div id="reportData"
+             data-disease="{{ results.detection.disease }}"
+             data-confidence="{{ results.detection.confidence }}"
+             data-severity="{{ results.detection.severity }}"
+             data-date="{{ results.analysis_details.date }}"
+             data-recommendations="{{ results.recommendations | tojson | e }}"
+             style="display:none;">
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row">
+            <div class="col-12 text-center">
+                <button class="btn btn-primary me-2" id="downloadBtn">
+                    <i class="fas fa-download me-2"></i>Download Report
+                </button>
+                <button class="btn btn-outline-secondary me-2" id="shareBtn">
+                    <i class="fas fa-share me-2"></i>Share Results
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Analyze Another Image
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function() {
+    function getReportData() {
+        var el = document.getElementById('reportData');
+        return {
+            disease: el.getAttribute('data-disease'),
+            confidence: el.getAttribute('data-confidence'),
+            severity: el.getAttribute('data-severity'),
+            date: el.getAttribute('data-date'),
+            recommendations: JSON.parse(el.getAttribute('data-recommendations'))
+        };
+    }
+
+    function downloadReport() {
+        var d = getReportData();
+        var doc = new window.jspdf.jsPDF();
+
+        // Header
+        doc.setFillColor(22, 163, 74);
+        doc.rect(0, 0, 210, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Soyabean Leaf Disease Analysis Report', 20, 20);
+
+        // Details
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Detection Results', 20, 45);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.text('Disease Detected : ' + d.disease, 20, 57);
+        doc.text('Confidence       : ' + d.confidence + '%', 20, 67);
+        doc.text('Severity         : ' + d.severity, 20, 77);
+        doc.text('Analysis Date    : ' + d.date, 20, 87);
+
+        // Divider
+        doc.setDrawColor(22, 163, 74);
+        doc.setLineWidth(0.5);
+        doc.line(20, 95, 190, 95);
+
+        // Recommendations
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(22, 163, 74);
+        doc.text('Treatment Recommendations', 20, 105);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        var y = 115;
+        d.recommendations.forEach(function(rec, i) {
+            var lines = doc.splitTextToSize((i + 1) + '. ' + rec, 170);
+            doc.text(lines, 20, y);
+            y += lines.length * 7;
+        });
+
+        // Footer
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Generated by Soyabean Leaf Disease Detection System', 20, 285);
+
+        doc.save('soyabean-report-' + Date.now() + '.pdf');
+    }
+
+    function shareResults() {
+        var url = window.location.href;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function() {
+                alert('Page link copied to clipboard! Share it with anyone.');
+            }).catch(function() {
+                prompt('Copy this link:', url);
+            });
+        } else {
+            prompt('Copy this link:', url);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('downloadBtn').addEventListener('click', downloadReport);
+        document.getElementById('shareBtn').addEventListener('click', shareResults);
+
+        setTimeout(function() {
+            var fill = document.querySelector('.confidence-fill');
+            if (fill) fill.style.width = fill.style.width;
+        }, 500);
+
+        setTimeout(function() {
+            document.querySelectorAll('.progress-bar-custom').forEach(function(bar) {
+                var w = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(function() { bar.style.width = w; }, 100);
+            });
+        }, 800);
+    });
+})();
+</script>
+{% endblock %}

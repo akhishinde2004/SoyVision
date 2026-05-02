@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% block title %}Analyze – SoyVision{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="main-container fade-in">
+
+        
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 style="font-weight:700;font-size:1.4rem;margin-bottom:4px;">
+                    <span data-lang="en">Leaf Disease Detection</span>
+                    <span data-lang="hi">पत्ती रोग पहचान</span>
+                    <span data-lang="mr">पान रोग ओळख</span>
+                </h2>
+                <p class="text-muted" style="font-size:0.88rem;margin:0;">
+                    <span data-lang="en">Upload a soyabean leaf image for AI-powered analysis</span>
+                    <span data-lang="hi">AI विश्लेषण के लिए सोयाबीन पत्ती की छवि अपलोड करें</span>
+                    <span data-lang="mr">AI विश्लेषणासाठी सोयाबीन पानाची प्रतिमा अपलोड करा</span>
+                </p>
+            </div>
+            
+        </div>
+
+        <!-- Feature Pills -->
+        <div class="d-flex gap-2 flex-wrap mb-4">
+            <span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                <i class="fas fa-brain me-1"></i>YOLOv8 Detection
+            </span>
+            <span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                <i class="fas fa-chart-bar me-1"></i>CNN Severity 0–3
+            </span>
+            <span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                <i class="fas fa-bolt me-1"></i>~3 sec results
+            </span>
+            <span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                <i class="fas fa-check-circle me-1"></i>98% Accuracy
+            </span>
+        </div>
+
+        <!-- Upload Card -->
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                            <div class="upload-zone" id="uploadZone">
+                                <div id="uploadPrompt">
+                                    <div style="width:56px;height:56px;background:#f0fdf4;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size:22px;color:#16a34a;"></i>
+                                    </div>
+                                    <h5 style="font-weight:600;margin-bottom:6px;">
+                                        <span data-lang="en">Upload Leaf Image</span>
+                                        <span data-lang="hi">पत्ती की छवि अपलोड करें</span>
+                                        <span data-lang="mr">पानाची प्रतिमा अपलोड करा</span>
+                                    </h5>
+                                    <p class="text-muted" style="font-size:0.85rem;margin-bottom:16px;">
+                                        <span data-lang="en">Drag & drop or click to browse</span>
+                                        <span data-lang="hi">खींचें & छोड़ें या ब्राउज़ करें</span>
+                                        <span data-lang="mr">ड्रॅग & ड्रॉप किंवा ब्राउज करा</span>
+                                    </p>
+                                    <input type="file" name="file" id="fileInput" accept="image/*" style="display:none;" required>
+                                    <button type="button" class="btn btn-outline-success btn-sm px-4" id="browseBtn">
+                                        <i class="fas fa-image me-2"></i>
+                                        <span data-lang="en">Choose Image</span>
+                                        <span data-lang="hi">छवि चुनें</span>
+                                        <span data-lang="mr">प्रतिमा निवडा</span>
+                                    </button>
+                                    <p class="text-muted mt-2" style="font-size:0.78rem;">JPG, PNG, WEBP · Max 16MB</p>
+                                </div>
+
+                                <!-- Preview -->
+                                <div id="filePreview" style="display:none;">
+                                    <img id="previewImage" src="" alt="Preview"
+                                         style="max-height:180px;border-radius:10px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                                    <div style="font-size:0.85rem;font-weight:600;color:#111827;" id="fileName"></div>
+                                    <div style="font-size:0.8rem;color:#6b7280;" id="fileSize"></div>
+                                    <div class="d-flex gap-2 justify-content-center mt-3">
+                                        <button type="button" id="changeBtn" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-redo me-1"></i>Change
+                                        </button>
+                                        <button type="submit" class="btn btn-primary btn-sm px-4" id="analyzeBtn">
+                                            <i class="fas fa-microscope me-2"></i>
+                                            <span data-lang="en">Start Analysis</span>
+                                            <span data-lang="hi">विश्लेषण शुरू करें</span>
+                                            <span data-lang="mr">विश्लेषण सुरू करा</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Progress -->
+                            <div id="progressWrap" style="display:none;margin-top:16px;">
+                                <div class="loading-spinner"></div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:0.82rem;color:#6b7280;">
+                                        <span data-lang="en">Analyzing leaf...</span>
+                                        <span data-lang="hi">पत्ती का विश्लेषण...</span>
+                                        <span data-lang="mr">पान तपासत आहे...</span>
+                                    </span>
+                                    <span style="font-size:0.82rem;color:#6b7280;" id="progressText">0%</span>
+                                </div>
+                                <div class="progress-custom">
+                                    <div class="progress-bar-custom" id="progressBar" style="width:0%"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Steps -->
+            <div class="col-lg-5 mt-3 mt-lg-0">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle text-success me-2"></i>
+                        <span data-lang="en">How it works</span>
+                        <span data-lang="hi">यह कैसे काम करता है</span>
+                        <span data-lang="mr">हे कसे कार्य करते</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <span style="font-size:0.8rem;font-weight:700;color:#16a34a;">1</span>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.88rem;font-weight:600;">
+                                        <span data-lang="en">Upload leaf photo</span>
+                                        <span data-lang="hi">पत्ती की फोटो अपलोड करें</span>
+                                        <span data-lang="mr">पानाचा फोटो अपलोड करा</span>
+                                    </div>
+                                    <div style="font-size:0.8rem;color:#6b7280;">
+                                        <span data-lang="en">Clear, well-lit image works best</span>
+                                        <span data-lang="hi">स्पष्ट, अच्छी रोशनी वाली छवि सबसे अच्छी है</span>
+                                        <span data-lang="mr">स्पष्ट, चांगल्या प्रकाशातील प्रतिमा उत्तम</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start gap-3">
+                                <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <span style="font-size:0.8rem;font-weight:700;color:#16a34a;">2</span>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.88rem;font-weight:600;">
+                                        <span data-lang="en">YOLOv8 detects regions</span>
+                                        <span data-lang="hi">YOLOv8 क्षेत्रों का पता लगाता है</span>
+                                        <span data-lang="mr">YOLOv8 प्रभावित भाग शोधतो</span>
+                                    </div>
+                                    <div style="font-size:0.8rem;color:#6b7280;">
+                                        <span data-lang="en">Bounding boxes on infected areas</span>
+                                        <span data-lang="hi">संक्रमित क्षेत्रों पर बाउंडिंग बॉक्स</span>
+                                        <span data-lang="mr">संक्रमित भागांवर बाउंडिंग बॉक्स</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start gap-3">
+                                <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <span style="font-size:0.8rem;font-weight:700;color:#16a34a;">3</span>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.88rem;font-weight:600;">
+                                        <span data-lang="en">CNN grades severity 0–3</span>
+                                        <span data-lang="hi">CNN गंभीरता 0–3 ग्रेड करता है</span>
+                                        <span data-lang="mr">CNN तीव्रता 0–3 श्रेणी देतो</span>
+                                    </div>
+                                    <div style="font-size:0.8rem;color:#6b7280;">
+                                        <span data-lang="en">Healthy → Mild → Moderate → Severe</span>
+                                        <span data-lang="hi">स्वस्थ → हल्का → मध्यम → गंभीर</span>
+                                        <span data-lang="mr">निरोगी → सौम्य → मध्यम → तीव्र</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start gap-3">
+                                <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <span style="font-size:0.8rem;font-weight:700;color:#16a34a;">4</span>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.88rem;font-weight:600;">
+                                        <span data-lang="en">Get report & recommendations</span>
+                                        <span data-lang="hi">रिपोर्ट और सिफारिशें प्राप्त करें</span>
+                                        <span data-lang="mr">अहवाल आणि शिफारसी मिळवा</span>
+                                    </div>
+                                    <div style="font-size:0.8rem;color:#6b7280;">
+                                        <span data-lang="en">Download PDF, share results</span>
+                                        <span data-lang="hi">PDF डाउनलोड करें, परिणाम साझा करें</span>
+                                        <span data-lang="mr">PDF डाउनलोड करा, परिणाम शेअर करा</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const browseBtn = document.getElementById('browseBtn');
+    const changeBtn = document.getElementById('changeBtn');
+    const filePreview = document.getElementById('filePreview');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const previewImage = document.getElementById('previewImage');
+    const fileNameEl = document.getElementById('fileName');
+    const fileSizeEl = document.getElementById('fileSize');
+    const uploadForm = document.getElementById('uploadForm');
+    const progressWrap = document.getElementById('progressWrap');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    browseBtn.addEventListener('click', () => fileInput.click());
+    if (changeBtn) changeBtn.addEventListener('click', () => fileInput.click());
+
+    uploadZone.addEventListener('click', (e) => {
+        if (e.target === browseBtn || e.target.closest('#browseBtn') ||
+            e.target === changeBtn || e.target.closest('#changeBtn') ||
+            e.target.closest('#analyzeBtn') || e.target === fileInput) return;
+        if (filePreview.style.display === 'none') fileInput.click();
+    });
+
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault(); uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) { fileInput.files = e.dataTransfer.files; handleFile(e.dataTransfer.files[0]); }
+    });
+
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFile(e.target.files[0]); });
+
+    function handleFile(file) {
+        const allowed = ['image/jpeg','image/jpg','image/png','image/webp','image/gif','image/bmp'];
+        if (!allowed.includes(file.type)) { alert('Please select a valid image file.'); return; }
+        if (file.size > 16 * 1024 * 1024) { alert('File size must be less than 16MB.'); return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImage.src = e.target.result;
+            fileNameEl.textContent = file.name;
+            fileSizeEl.textContent = formatSize(file.size);
+            uploadPrompt.style.display = 'none';
+            filePreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function formatSize(bytes) {
+        if (!bytes) return '0 B';
+        const sizes = ['B','KB','MB','GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+    }
+
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!fileInput.files[0]) { alert('Please select a file first.'); return; }
+        filePreview.style.display = 'none';
+        progressWrap.style.display = 'block';
+        document.querySelector('.loading-spinner').style.display = 'block';
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 18;
+            if (progress > 90) progress = 90;
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+        }, 200);
+        setTimeout(() => {
+            clearInterval(interval);
+            progressBar.style.width = '100%';
+            progressText.textContent = '100%';
+            setTimeout(() => this.submit(), 400);
+        }, 2000);
+    });
+});
+</script>
+{% endblock %}

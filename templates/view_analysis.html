@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Analysis Details – SoyVision{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="main-container fade-in">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.history.back()">
+                <i class="fas fa-arrow-left me-1"></i>Back
+            </button>
+            <div>
+                <h2 style="font-weight:700;font-size:1.3rem;margin:0;">Analysis #{{ analysis.id }}</h2>
+                <p class="text-muted" style="font-size:0.82rem;margin:0;">{{ analysis.analysis_date }}</p>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- Left: Image -->
+            <div class="col-lg-5">
+                <div class="card h-100">
+                    <div class="card-header"><i class="fas fa-image text-success me-2"></i>Leaf Image</div>
+                    <div class="card-body p-0">
+                        <img src="{{ url_for('static', filename='uploads/' + analysis.filename) }}"
+                             class="w-100" style="border-radius:0 0 12px 12px;max-height:320px;object-fit:cover;"
+                             onerror="this.src='https://placehold.co/600x320/f0fdf4/16a34a?text=Image+Not+Found'"
+                             alt="Leaf">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Results -->
+            <div class="col-lg-7">
+                <div class="card mb-3">
+                    <div class="card-header"><i class="fas fa-chart-bar text-success me-2"></i>Detection Results</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div style="font-size:0.78rem;color:#6b7280;font-weight:600;margin-bottom:4px;">DISEASE</div>
+                                <div style="font-weight:700;font-size:1rem;">{{ analysis.disease_detected }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div style="font-size:0.78rem;color:#6b7280;font-weight:600;margin-bottom:4px;">CONFIDENCE</div>
+                                <div style="font-weight:700;font-size:1rem;color:#16a34a;">{{ "%.1f"|format(analysis.confidence) }}%</div>
+                            </div>
+                            <div class="col-6">
+                                <div style="font-size:0.78rem;color:#6b7280;font-weight:600;margin-bottom:4px;">SEVERITY</div>
+                                <span class="severity-badge severity-{{ analysis.severity.lower() if analysis.severity else 'none' }}">
+                                    {{ analysis.severity or 'None' }}
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <div style="font-size:0.78rem;color:#6b7280;font-weight:600;margin-bottom:4px;">STATUS</div>
+                                <span class="badge" style="background:#dcfce7;color:#15803d;">{{ analysis.status }}</span>
+                            </div>
+                            <div class="col-6">
+                                <div style="font-size:0.78rem;color:#6b7280;font-weight:600;margin-bottom:4px;">FILE</div>
+                                <div style="font-size:0.85rem;word-break:break-all;">{{ analysis.original_filename }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div style="font-size:0.78rem;color:#6b7280;font-weight:600;margin-bottom:4px;">PROCESSING</div>
+                                <div style="font-size:0.85rem;">{{ analysis.processing_time }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-prescription-bottle text-warning me-2"></i>Recommendations</div>
+                    <div class="card-body">
+                        {% for rec in analysis.recommendations %}
+                        <div class="recommendation-item">
+                            <i class="fas fa-check-circle text-warning me-2"></i>{{ rec }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

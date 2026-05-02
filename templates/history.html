@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}History – SoyVision{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="main-container fade-in">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 style="font-weight:700;font-size:1.4rem;margin-bottom:4px;">
+                    <span data-lang="en">Analysis History</span>
+                    <span data-lang="hi">विश्लेषण इतिहास</span>
+                    <span data-lang="mr">विश्लेषण इतिहास</span>
+                </h2>
+                <p class="text-muted" style="font-size:0.88rem;margin:0;">
+                    <span data-lang="en">Your previous leaf disease analyses</span>
+                    <span data-lang="hi">आपके पिछले पत्ती रोग विश्लेषण</span>
+                    <span data-lang="mr">तुमचे मागील पान रोग विश्लेषण</span>
+                </p>
+            </div>
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-sm px-3">
+                <i class="fas fa-plus me-1"></i>
+                <span data-lang="en">New Analysis</span>
+                <span data-lang="hi">नया विश्लेषण</span>
+                <span data-lang="mr">नवीन विश्लेषण</span>
+            </a>
+        </div>
+
+        {% if history %}
+        <!-- Search & Filters -->
+        <div class="row g-2 mb-3">
+            <div class="col-md-5">
+                <div style="position:relative;">
+                    <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:13px;"></i>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search disease or filename..."
+                           style="padding-left:36px;font-size:0.88rem;border-radius:10px;" onkeyup="filterHistory()">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="diseaseFilter" style="font-size:0.88rem;border-radius:10px;" onchange="filterHistory()">
+                    <option value="">All Diseases</option>
+                    <option value="healthy">Healthy</option>
+                    <option value="yellow mosaic">Yellow Mosaic</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="severityFilter" style="font-size:0.88rem;border-radius:10px;" onchange="filterHistory()">
+                    <option value="">All Severity</option>
+                    <option value="none">None</option>
+                    <option value="low">Low</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()" style="height:38px;font-size:0.85rem;">
+                    <i class="fas fa-times me-1"></i>Clear
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" style="font-size:0.88rem;">
+                        <thead style="background:#f9fafb;border-bottom:1px solid #e5e7eb;">
+                            <tr>
+                                <th style="padding:12px 16px;font-weight:600;color:#374151;">Date</th>
+                                <th style="padding:12px 16px;font-weight:600;color:#374151;">Image</th>
+                                <th style="padding:12px 16px;font-weight:600;color:#374151;">Disease</th>
+                                <th style="padding:12px 16px;font-weight:600;color:#374151;">Confidence</th>
+                                <th style="padding:12px 16px;font-weight:600;color:#374151;">Severity</th>
+                                <th style="padding:12px 16px;font-weight:600;color:#374151;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                            {% for item in history %}
+                            <tr style="border-bottom:1px solid #f3f4f6;" data-id="{{ item.id }}">
+                                <td style="padding:12px 16px;vertical-align:middle;color:#6b7280;">
+                                    {{ item.analysis_date[:10] if item.analysis_date else '—' }}
+                                </td>
+                                <td style="padding:12px 16px;vertical-align:middle;">
+                                    <img src="{{ url_for('static', filename='uploads/' + item.filename) }}"
+                                         style="width:52px;height:38px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"
+                                         onerror="this.style.display='none'"
+                                         alt="leaf">
+                                </td>
+                                <td style="padding:12px 16px;vertical-align:middle;font-weight:500;">
+                                    {{ item.disease_detected }}
+                                </td>
+                                <td style="padding:12px 16px;vertical-align:middle;">
+                                    {% if item.confidence >= 80 %}
+                                    <span class="badge" style="background:#dcfce7;color:#15803d;">{{ "%.1f"|format(item.confidence) }}%</span>
+                                    {% elif item.confidence >= 60 %}
+                                    <span class="badge" style="background:#fef3c7;color:#d97706;">{{ "%.1f"|format(item.confidence) }}%</span>
+                                    {% else %}
+                                    <span class="badge" style="background:#fee2e2;color:#dc2626;">{{ "%.1f"|format(item.confidence) }}%</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding:12px 16px;vertical-align:middle;">
+                                    <span class="severity-badge severity-{{ item.severity.lower() if item.severity else 'none' }}">
+                                        {{ item.severity or 'None' }}
+                                    </span>
+                                </td>
+                                <td style="padding:12px 16px;vertical-align:middle;">
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;padding:4px 10px;"
+                                                title="Download Report"
+                                                onclick="downloadHistoryReport({{ item.id }}, '{{ item.original_filename }}', '{{ item.disease_detected }}', {{ item.confidence }}, '{{ item.severity }}')">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-sm" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:4px 10px;"
+                                                title="Delete"
+                                                onclick="confirmDelete({{ item.id }}, this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div style="width:64px;height:64px;background:#f0fdf4;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="fas fa-history" style="font-size:24px;color:#16a34a;"></i>
+                </div>
+                <h5 style="font-weight:600;margin-bottom:8px;">
+                    <span data-lang="en">No analyses yet</span>
+                    <span data-lang="hi">अभी तक कोई विश्लेषण नहीं</span>
+                    <span data-lang="mr">अजून कोणतेही विश्लेषण नाही</span>
+                </h5>
+                <p class="text-muted" style="font-size:0.88rem;margin-bottom:20px;">
+                    <span data-lang="en">Start by uploading your first soyabean leaf image</span>
+                    <span data-lang="hi">अपनी पहली सोयाबीन पत्ती की छवि अपलोड करके शुरू करें</span>
+                    <span data-lang="mr">तुमची पहिली सोयाबीन पानाची प्रतिमा अपलोड करा</span>
+                </p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-sm px-4">
+                    <i class="fas fa-plus me-2"></i>
+                    <span data-lang="en">Start First Analysis</span>
+                    <span data-lang="hi">पहला विश्लेषण शुरू करें</span>
+                    <span data-lang="mr">पहिले विश्लेषण सुरू करा</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterHistory() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const disease = document.getElementById('diseaseFilter').value.toLowerCase();
+    const severity = document.getElementById('severityFilter').value.toLowerCase();
+    document.querySelectorAll('#historyTable tr').forEach(row => {
+        const cells = row.cells;
+        if (!cells) return;
+        const diseaseText = cells[2].textContent.toLowerCase();
+        const severityText = cells[4].textContent.toLowerCase();
+        const filenameText = row.querySelector('img') ? row.querySelector('img').alt : '';
+        const matchSearch = !search || diseaseText.includes(search) || filenameText.includes(search);
+        const matchDisease = !disease || diseaseText.includes(disease);
+        const matchSeverity = !severity || severityText.includes(severity);
+        row.style.display = (matchSearch && matchDisease && matchSeverity) ? '' : 'none';
+    });
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('diseaseFilter').value = '';
+    document.getElementById('severityFilter').value = '';
+    filterHistory();
+}
+
+function downloadHistoryReport(id, filename, disease, confidence, severity) {
+    let text = 'SOYABEAN LEAF DISEASE DETECTION REPORT\n';
+    text += '=======================================\n\n';
+    text += 'Analysis ID    : ' + id + '\n';
+    text += 'Image File     : ' + filename + '\n';
+    text += 'Disease        : ' + disease + '\n';
+    text += 'Confidence     : ' + confidence.toFixed(1) + '%\n';
+    text += 'Severity       : ' + severity + '\n\n';
+    text += 'Generated by SoyVision – Soyabean Leaf Disease Detection System\n';
+    const blob = new Blob([text], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'report_' + id + '.txt';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function confirmDelete(id, btn) {
+    if (!confirm('Delete this analysis? This cannot be undone.')) return;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    fetch('/delete_analysis/' + id, {
+        method: 'POST', headers: {'Content-Type': 'application/json'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const row = btn.closest('tr');
+            row.style.transition = 'opacity 0.3s';
+            row.style.opacity = '0';
+            setTimeout(() => row.remove(), 300);
+        } else { alert('Error: ' + data.message); btn.innerHTML = orig; btn.disabled = false; }
+    })
+    .catch(() => { alert('Error deleting.'); btn.innerHTML = orig; btn.disabled = false; });
+}
+</script>
+{% endblock %}
