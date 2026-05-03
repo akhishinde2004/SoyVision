@@ -3,6 +3,7 @@ __pycache__/
 *.pth
 static/uploads/*
 !static/uploads/.gitkeep
+!static/screenshots/
 users.db
 *.db
 venv/
