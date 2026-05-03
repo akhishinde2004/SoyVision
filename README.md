@@ -110,7 +110,7 @@ Open your browser at `http://127.0.0.1:5000`
 
 | Login | Dashboard | Results |
 |-------|-----------|---------|
-| Clean auth UI | Upload leaf image | Disease + severity report |
+| ![Login](static/screenshots/login.png) | ![Dashboard](static/screenshots/dashboard.png) | ![Results](static/screenshots/results.png) |
 
 ---
 
